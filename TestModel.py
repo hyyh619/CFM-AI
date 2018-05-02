@@ -128,7 +128,7 @@ class AIModel:
         return action_list[0]
 
 def Predict(folder, predictor):
-    
+    pass
 
 if __name__ == '__main__':
     predictor = AIModel()
