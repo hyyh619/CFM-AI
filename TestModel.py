@@ -16,17 +16,9 @@ import numpy as np
 from collections import deque
 from keras.models import model_from_json
 from keras.preprocessing.image import array_to_img, img_to_array
+import TrainingDefines
 
 model_path = "../CFM-models/Car-40800-modify-no-action-to-turn/"
-
-ACTION_NAME_LIST = ['forward',
-                    'backward',
-                    'move_left',
-                    'move_right',
-                    'turn_left',
-                    'turn_right',
-                    'no_action']
-
 
 class AIModel:
     def __init__(self):
@@ -81,7 +73,7 @@ class AIModel:
         now = int(round(t*1000))
         timeStr = time.strftime('%Y-%m-%d-%H-%M-%S',time.localtime(now/1000))
         savedFileName = "%s/doom-%s-%d.jpg" % (self.imgPath, timeStr, self.sampleNum)
-        self.sampleCSVWriter.writerow([savedFileName, action, ACTION_NAME_LIST[action]])
+        self.sampleCSVWriter.writerow([savedFileName, action, TrainingDefines.ACTION_NAME[action]])
         self.sampleCSVFile.flush()
 
         # skimage.io.imsave("hy.jpg", screen.transpose(1, 2, 0))
@@ -123,7 +115,7 @@ class AIModel:
             self.forwardCount = 0
             self.changeAction = random.randint(4, 5)
 
-        self.logger.info("action: %s" %(ACTION_NAME_LIST[action_list[0][0]]))
+        self.logger.info("action: %s" %(TrainingDefines.ACTION_NAME[action_list[0][0]]))
 
         return action_list[0]
 
@@ -132,6 +124,10 @@ def Predict(folder, predictor):
         for filename in files:
             file = os.path.join(root,filename)
             [shotname, extension] = os.path.splitext(file)
+
+            img = cv2.imread(file)
+            action = predictor.GetAction(img)
+            print("%s" %(TrainingDefines.ACTION_NAME[action]))
 
 if __name__ == '__main__':
     predictor = AIModel()

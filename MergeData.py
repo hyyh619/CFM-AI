@@ -5,24 +5,15 @@ import csv
 import random
 import time
 from PIL import Image
+import TrainingDefines
 
 dataNum = 53
-
-DEATHMATCH_ACTION5_NAME = [
-    "MOVE_FORWARD",
-    "MOVE_BACKWARD",
-    "MOVE_LEFT",
-    "MOVE_RIGHT",
-    "TURN_LEFT",
-    "TURN_RIGHT",
-    "NO_ACTION"
-]
 
 
 def generate_samples(start, end, src, dst, skip):
     if not os.path.exists(dst):
         os.mkdir(dst)
-    imgDst = dst + "/img"    
+    imgDst = dst + "/img"
     if not os.path.exists(imgDst):
         os.mkdir(imgDst)
 
@@ -58,7 +49,7 @@ def generate_samples(start, end, src, dst, skip):
 def generate_samples_4_merge(start, end, src, dst, skip):
     if not os.path.exists(dst):
         os.mkdir(dst)
-    imgDst = dst + "/img"    
+    imgDst = dst + "/img"
     if not os.path.exists(imgDst):
         os.mkdir(imgDst)
 
@@ -92,7 +83,7 @@ def generate_samples_4_merge(start, end, src, dst, skip):
 
                 action = data.iloc[index]['action']
                 w, h = img.size[0], img.size[1]
-                mergeimg = Image.new('RGB', (w * 2, h*2), 0xffffff)    
+                mergeimg = Image.new('RGB', (w * 2, h*2), 0xffffff)
 
                 mergeimg.paste(imgList[0], (0, 0))
                 mergeimg.paste(imgList[1], (w, 0))
@@ -166,7 +157,7 @@ def merge_seq_4_images(srcList, output_file):
 def generate_merge_seq_4_images(src, dst):
     if not os.path.exists(dst):
         os.mkdir(dst)
-    imgDst = dst + "/img"    
+    imgDst = dst + "/img"
     if not os.path.exists(imgDst):
         os.mkdir(imgDst)
 
@@ -198,7 +189,7 @@ def generate_merge_seq_4_images(src, dst):
         row = pd.DataFrame({"name":"","action":""}, index=["0"])
         row.iloc[0]["name"] = output_file
         row.iloc[0]["action"] = action
-        row.iloc[0]['action_name'] = DEATHMATCH_ACTION5_NAME[action]
+        row.iloc[0]['action_name'] = TrainingDefines.ACTION_NAME[action]
         total = total.append(row, ignore_index=True)
 
         # pop head img and push new img
@@ -210,7 +201,7 @@ def generate_merge_seq_4_images(src, dst):
 def generate_samples_from_folders(start, end, src, dst):
     if not os.path.exists(dst):
         os.mkdir(dst)
-    imgDst = dst + "/img"    
+    imgDst = dst + "/img"
     if not os.path.exists(imgDst):
         os.mkdir(imgDst)
 
@@ -288,7 +279,7 @@ def split_data_to_train_test(src, trainDst, testDst):
             row = pd.DataFrame({"name":"","action":"","action_name":"","friend":"","enemy":""}, index=["0"])
             row.iloc[0]["name"] = dstfile
             row.iloc[0]["action"] = action
-            row.iloc[0]['action_name'] = DEATHMATCH_ACTION5_NAME[action]
+            row.iloc[0]['action_name'] = TrainingDefines.ACTION_NAME[action]
             row.iloc[0]['friend'] = friend
             row.iloc[0]['enemy'] = enemy
             totalTrain = totalTrain.append(row, ignore_index=True)
@@ -299,7 +290,7 @@ def split_data_to_train_test(src, trainDst, testDst):
             row = pd.DataFrame({"name":"","action":"","action_name":"","friend":"","enemy":""}, index=["0"])
             row.iloc[0]["name"] = dstfile
             row.iloc[0]["action"] = action
-            row.iloc[0]['action_name'] = DEATHMATCH_ACTION5_NAME[action]
+            row.iloc[0]['action_name'] = TrainingDefines.ACTION_NAME[action]
             row.iloc[0]['friend'] = friend
             row.iloc[0]['enemy'] = enemy            
             totalTest = totalTest.append(row, ignore_index=True)
@@ -315,7 +306,7 @@ def split_data_to_train_test(src, trainDst, testDst):
 
         if counter == 10:
             counter = 0
-    
+
     totalTrain.to_csv(sampleCSVFilePath1, index=False, sep=',')
     totalTest.to_csv(sampleCSVFilePath2, index=False, sep=',')
     return
@@ -342,7 +333,7 @@ def SupplementSamples(csvFile, action_num):
     max = 0
     action_max = {}
     for i in range(action_num):
-        print("%s: %d" %(DEATHMATCH_ACTION5_NAME[i], action_count[i]))
+        print("%s: %d" %(TrainingDefines.ACTION_NAME[i], action_count[i]))
         action_max[i] = action_count[i]
         if action_count[i] > max:
             max = action_count[i]
@@ -362,7 +353,7 @@ def SupplementSamples(csvFile, action_num):
                 row = pd.DataFrame({"name":"","action":"","action_name":""}, index=["0"])
                 row.iloc[0]["name"] = newName
                 row.iloc[0]["action"] = action
-                row.iloc[0]['action_name'] = DEATHMATCH_ACTION5_NAME[action]
+                row.iloc[0]['action_name'] = TrainingDefines.ACTION_NAME[action]
                 total = total.append(row, ignore_index=True)
 
                 action_max[action] += 1
@@ -412,7 +403,7 @@ def HorizontalFlipSamples(csvFile):
             row = pd.DataFrame({"name":"","action":"","action_name":""}, index=["0"])
             row.iloc[0]["name"] = new_name
             row.iloc[0]["action"] = new_action
-            row.iloc[0]['action_name'] = DEATHMATCH_ACTION5_NAME[new_action]
+            row.iloc[0]['action_name'] = TrainingDefines.ACTION_NAME[new_action]
             total = total.append(row, ignore_index=True)
 
     total.to_csv(csvFile, index=False, sep=',')
@@ -428,7 +419,7 @@ def ModifyRightSamples(csvFile):
 
         if action == 4:
             total.loc[index, 'action'] = 3
-            total.loc[index, 'action_name'] = DEATHMATCH_ACTION5_NAME[3]
+            total.loc[index, 'action_name'] = TrainingDefines.ACTION_NAME[3]
 
     total.to_csv(csvFile, index=False, sep=',')
     return
@@ -458,7 +449,7 @@ def ModifyNoActionToTurn(csvFile):
         if action == 6:
             if last_action == 4 or last_action == 5:
                 action = last_action
-                action_name = DEATHMATCH_ACTION5_NAME[action]
+                action_name = TrainingDefines.ACTION_NAME[action]
                 total['action'][index] = action
                 total['action_name'][index] = action_name
             else:
