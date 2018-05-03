@@ -128,7 +128,10 @@ class AIModel:
         return action_list[0]
 
 def Predict(folder, predictor):
-    pass
+    for (root, dirs, files) in os.walk(folder):
+        for filename in files:
+            file = os.path.join(root,filename)
+            [shotname, extension] = os.path.splitext(file)
 
 if __name__ == '__main__':
     predictor = AIModel()

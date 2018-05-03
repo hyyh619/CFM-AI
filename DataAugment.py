@@ -9,7 +9,7 @@ from PIL import Image
 
 
 def ResizeImg(folder):
-    for (root, dirs, files) in os.walk(folder):  
+    for (root, dirs, files) in os.walk(folder):
         for filename in files:
             file = os.path.join(root,filename)
             [shotname, extension] = os.path.splitext(file)
