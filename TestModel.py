@@ -17,6 +17,9 @@ import pandas as pd
 from collections import deque
 from keras.models import model_from_json
 from keras.preprocessing.image import array_to_img, img_to_array
+from vis.losses import ActivationMaximization
+from vis.regularizers import TotalVariation, LPNorm
+
 import TrainingDefines
 
 model_path = "../CFM-models/Car-40800-modify-no-action-to-turn/"
@@ -157,6 +160,16 @@ def Predict(folder, predictor, bTraversal):
         total.to_csv(sampleCSVFilePath, index=False, sep=',')
     else:
         total = pd.read_csv(src)
+
+    filter_indices = [1, 2, 3]
+
+    # Tuple consists of (loss_function, weight)
+    # Add regularizers as needed.
+    losses = [
+        (ActivationMaximization(keras_layer, filter_indices), 1),
+        (LPNorm(model.input), 10),
+        (TotalVariation(model.input), 10)
+    ]
 
     num_of_img = len(total)
     for index in range(num_of_img):
