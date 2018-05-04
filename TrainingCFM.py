@@ -102,10 +102,21 @@ def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
         number_of_samples_per_epoch = trainingNum
         number_of_validation_samples = validNum
         fileList = trainingList
+
+        if len(fileList) <= 0:
+            print ("There is no such file")
+            return
+
+        for file in fileList:
+            bExist = os.path.exists(file)
+            if bExist == False:
+                print ("There is no such file: %s" %(file))
+                return
     else :
         bExist = os.path.exists("../CFM-Dataset/40800-Action7/tfdata_orig/train0.tfrecords")
         if bExist == False:
             print ("There is no such file")
+            return
 
         number_of_samples_per_epoch = 1024
         number_of_validation_samples = 256
@@ -115,7 +126,7 @@ def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
     steps_of_validation = number_of_validation_samples // TrainingDefines.BATCH_SIZE
     steps_of_train = number_of_samples_per_epoch // TrainingDefines.BATCH_SIZE
 
-    x_train_, y_train_ = ktfr.read_and_decode(fileList, w, h, one_hot=True, n_class=classes, 
+    x_train_, y_train_ = ktfr.read_and_decode(fileList, w, h, one_hot=True, n_class=classes,
                                               is_train=True, bResize=bResize, origImgW=origImgW, origImgH=origImgH)
 
     if bShuffle == False:
@@ -183,35 +194,35 @@ def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
     # plot loss
     ShowTrainingResult(history)
 
-    sess.close()    
+    sess.close()
 
     return
 
 if __name__ == '__main__':
     fileList = ["../CFM-Dataset/40800-Action7/tfdata_orig/train0.tfrecords",
                 "../CFM-Dataset/40800-Action7/tfdata_orig/train1.tfrecords",
-                "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords"]    
+                "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords"]
 
-    Training(imgW = 320, 
-             imgH = 180, 
+    Training(imgW = 320,
+             imgH = 180,
              inputW = 256,
              inputH = 256,
              modelName = 'BehavioralClone',
-             classesNum = 6, 
+             classesNum = 6,
              trainingList = fileList,
              validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
              trainingNum = 26057,
              validNum = 6847,
              epochs = 20)
 
-    # Training(imgW = 320, 
-    #          imgH = 180, 
+    # Training(imgW = 320,
+    #          imgH = 180,
     #          inputW = 256,
     #          inputH = 256,
     #          modelName = 'BehavioralClone',
-    #          classesNum = 6, 
+    #          classesNum = 6,
     #          trainingList = fileList,
     #          validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
     #          trainingNum = 26057,
     #          validNum = 6847,
-    #          epochs = 20)    
+    #          epochs = 20)

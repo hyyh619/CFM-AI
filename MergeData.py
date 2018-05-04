@@ -133,7 +133,7 @@ def generate_one_hot_samples_from_folders(src, dst, start, end):
             actionPath = "%s/%d" % (dst, action)
             if not os.path.exists(actionPath):
                 os.mkdir(actionPath)
-            file = os.path.basename(img)    
+            file = os.path.basename(img)
             srcfile = "%s/data%d/img/%s" % (src, start+i, file)
             dstfile = actionPath + "/" + file
             shutil.move(srcfile, dstfile)

@@ -1,3 +1,4 @@
+*.swp
 __pycache__/History.cpython-35.pyc
 tags
 .idea/inspectionProfiles/profiles_settings.xml
@@ -20,3 +21,5 @@ models/training_result.jpg
 tmp/train_model.h5
 tmp/train_model.json
 action_define.txt
+tmp/log/*
+tmp/*
