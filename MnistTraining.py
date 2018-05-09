@@ -88,4 +88,5 @@ model = utils.apply_modifications(model)
 filter_idx = 0
 img = visualize_activation(model, layer_idx, filter_indices=filter_idx)
 plt.imshow(img[..., 0])
+plt.show()
 plt.imsave("tmp/hy.jpg", img[..., 0])

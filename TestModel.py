@@ -191,6 +191,7 @@ def ShowModelLayer(model, layer_name):
     filter_idx = 0
     img = visualize_activation(model, layer_idx, filter_indices=filter_idx)
     plt.imshow(img[..., 0])
+    plt.show()
 
     file_name = "tmp/" + layer_name + ".jpg"
     plt.imsave(file_name, img[..., 0])
