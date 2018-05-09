@@ -208,7 +208,7 @@ if __name__ == '__main__':
              inputW = 256,
              inputH = 256,
              modelName = 'BehavioralClone',
-             classesNum = 6,
+             classesNum = TrainingDefines.CLASSES_NUM,
              trainingList = fileList,
              validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
              trainingNum = 26057,

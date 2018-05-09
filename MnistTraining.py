@@ -86,7 +86,20 @@ model = utils.apply_modifications(model)
 
 # This is the output node we want to maximize.
 filter_idx = 0
-img = visualize_activation(model, layer_idx, filter_indices=filter_idx)
+img = visualize_activation(model, layer_idx, filter_indices=filter_idx, input_range=(0., 1.), verbose=True)
 plt.imshow(img[..., 0])
-plt.show()
-plt.imsave("tmp/hy.jpg", img[..., 0])
+# plt.show()
+plt.imsave("tmp/ActivationMax/hy_2.jpg", img[..., 0])
+
+for tv_weight in [1e-3, 1e-2, 1e-1, 1, 10, 100]:
+    # Lets turn off verbose output this time to avoid clutter and just see the output.
+    img = visualize_activation(model, layer_idx, filter_indices=filter_idx, input_range=(0., 1.), 
+                               tv_weight=tv_weight, lp_norm_weight=0.)
+    img_name = "tmp/ActivationMax/hy_%f.jpg" % (tv_weight)
+    plt.imsave(img_name, img[..., 0])
+
+for output_idx in np.arange(10):
+    # Lets turn off verbose output this time to avoid clutter and just see the output.
+    img = visualize_activation(model, layer_idx, filter_indices=output_idx, input_range=(0., 1.))
+    img_name = "tmp/ActivationMax/hy_num%d.jpg" % (output_idx)
+    plt.imsave(img_name, img[..., 0])

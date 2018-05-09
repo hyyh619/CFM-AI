@@ -189,12 +189,19 @@ def ShowModelLayer(model, layer_name):
 
     # This is the output node we want to maximize.
     filter_idx = 0
-    img = visualize_activation(model, layer_idx, filter_indices=filter_idx)
+    img = visualize_activation(model, layer_idx, filter_indices=filter_idx, input_range=(0., 1.))
     plt.imshow(img[..., 0])
-    plt.show()
-
-    file_name = "tmp/" + layer_name + ".jpg"
+    file_name = "tmp/ActivationMax/" + layer_name + ".jpg"
     plt.imsave(file_name, img[..., 0])
+    # plt.show()
+
+    classes_num = model.output_shape[1]
+    for output_idx in np.arange(classes_num):
+        # Lets turn off verbose output this time to avoid clutter and just see the output.
+        img = visualize_activation(model, layer_idx, filter_indices=output_idx, input_range=(0., 1.))
+        img_name = "tmp/ActivationMax/%s_%s.jpg" % (layer_name, TrainingDefines.ACTION_NAME[output_idx])
+        plt.imsave(img_name, img[..., 0])
+
     return
 
 if __name__ == '__main__':
