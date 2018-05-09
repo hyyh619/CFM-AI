@@ -20,6 +20,10 @@ from keras.models import model_from_json
 from keras.preprocessing.image import array_to_img, img_to_array
 from vis.losses import ActivationMaximization
 from vis.regularizers import TotalVariation, LPNorm
+from vis.visualization import visualize_activation
+from vis.utils import utils
+from keras import activations
+from matplotlib import pyplot as plt
 
 import TrainingDefines
 
@@ -124,6 +128,9 @@ class AIModel:
 
         return action_list[0]
 
+    def GetModel(self):
+        return self.model
+
 def TraversalDir(folder, data):
     counter = 0
 
@@ -164,14 +171,6 @@ def Predict(folder, predictor, bTraversal):
 
     filter_indices = [1, 2, 3]
 
-    # Tuple consists of (loss_function, weight)
-    # Add regularizers as needed.
-    losses = [
-        (ActivationMaximization(keras_layer, filter_indices), 1),
-        (LPNorm(model.input), 10),
-        (TotalVariation(model.input), 10)
-    ]
-
     num_of_img = len(total)
     for index in range(num_of_img):
         file = total.iloc[index]['name'].strip()
@@ -179,6 +178,25 @@ def Predict(folder, predictor, bTraversal):
         action = predictor.GetAction(img)
         print("%s" %(TrainingDefines.ACTION_NAME[action[0]]))
 
+def ShowModelLayer(model, layer_name):
+    # Utility to search for layer index by name. 
+    # Alternatively we can specify this as -1 since it corresponds to the last layer.
+    layer_idx = utils.find_layer_idx(model, layer_name)
+
+    # Swap softmax with linear
+    model.layers[layer_idx].activation = activations.linear
+    model = utils.apply_modifications(model)
+
+    # This is the output node we want to maximize.
+    filter_idx = 0
+    img = visualize_activation(model, layer_idx, filter_indices=filter_idx)
+    plt.imshow(img[..., 0])
+
+    file_name = "tmp/" + layer_name + ".jpg"
+    plt.imsave(file_name, img[..., 0])
+    return
+
 if __name__ == '__main__':
     predictor = AIModel()
-    Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
+    ShowModelLayer(predictor.GetModel(), 'test_out')
+    # Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
