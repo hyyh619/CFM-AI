@@ -21,6 +21,7 @@ from keras.preprocessing.image import array_to_img, img_to_array
 from vis.losses import ActivationMaximization
 from vis.regularizers import TotalVariation, LPNorm
 from vis.visualization import visualize_activation
+from vis.visualization import visualize_saliency
 from vis.utils import utils
 from keras import activations
 from matplotlib import pyplot as plt
@@ -172,13 +173,22 @@ def Predict(folder, predictor, bTraversal):
     filter_indices = [1, 2, 3]
 
     num_of_img = len(total)
-    for index in range(num_of_img):
+
+    # Get AI model to dump silency map.
+    model = predictor.GetModel()
+
+    # Random check samples.
+    for i in range(20):
+        index = random.randint(0, num_of_img-1)
         file = total.iloc[index]['name'].strip()
         img = cv2.imread(file)
         action = predictor.GetAction(img)
         print("%s" %(TrainingDefines.ACTION_NAME[action[0]]))
 
-def ShowModelLayer(model, layer_name):
+        # This corresponds to the Dense linear layer.
+        ShowModelSilencyMap(model, "test_out", file, action[0])
+
+def ShowModelActivationMaximization(model, layer_name):
     # Utility to search for layer index by name. 
     # Alternatively we can specify this as -1 since it corresponds to the last layer.
     layer_idx = utils.find_layer_idx(model, layer_name)
@@ -204,7 +214,46 @@ def ShowModelLayer(model, layer_name):
 
     return
 
+def ShowModelSilencyMap(model, layer_name, img_file, action):
+    # Utility to search for layer index by name. 
+    # Alternatively we can specify this as -1 since it corresponds to the last layer.
+    layer_idx = utils.find_layer_idx(model, layer_name)
+
+    # Swap softmax with linear
+    model.layers[layer_idx].activation = activations.linear
+    model = utils.apply_modifications(model)
+
+    [path, file] = os.path.split(img_file)
+    [shotname, extension] = os.path.splitext(file)
+    img = plt.imread(img_file)
+    img_name = "tmp/SaliencyMap/" + (file)
+    img_resize = cv2.resize(img, (256, 256))
+    plt.imsave(img_name, img_resize)
+
+    imgs = FixSampleToModel(img, 256, 256)
+
+    # for i, modifier in enumerate([None, 'guided', 'relu']):
+    for i, modifier in enumerate(['guided']):
+        grads = visualize_saliency(model, layer_idx, filter_indices=action, 
+                                   seed_input=imgs, backprop_modifier=modifier)
+        if modifier is None:
+            modifier = 'vanilla'
+
+        img_name = "tmp/SaliencyMap/%s_%s_%s.jpg" % (file, TrainingDefines.ACTION_NAME[action], modifier)
+        plt.imsave(img_name, grads)
+    return
+
+def FixSampleToModel(inputImg, w, h):
+    img = np.float32(inputImg)
+    imgResize = cv2.resize(img, (w, h))
+    imgResize = img_to_array(imgResize).transpose(0, 1, 2)
+    imgResize = imgResize.astype("float32")
+
+    imgResize = (imgResize * (1./ 255.)) - 0.5
+    imgs = imgResize[None, :, :, :]
+    return imgs
+
 if __name__ == '__main__':
     predictor = AIModel()
-    ShowModelLayer(predictor.GetModel(), 'test_out')
-    # Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
+    # ShowModelActivationMaximization(predictor.GetModel(), 'test_out')
+    Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)

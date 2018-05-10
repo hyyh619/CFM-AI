@@ -10,6 +10,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
 
 from vis.visualization import visualize_activation
+from vis.visualization import visualize_saliency
 from vis.utils import utils
 from keras import activations
 
@@ -103,3 +104,21 @@ for output_idx in np.arange(10):
     img = visualize_activation(model, layer_idx, filter_indices=output_idx, input_range=(0., 1.))
     img_name = "tmp/ActivationMax/hy_num%d.jpg" % (output_idx)
     plt.imsave(img_name, img[..., 0])
+
+# This corresponds to the Dense linear layer.
+for class_idx in np.arange(10):
+    indices = np.where(y_test[:, class_idx] == 1.)[0]
+    idx = indices[0]
+
+    img_name = "tmp/SaliencyMap/hy_orig_num%d.jpg" % (class_idx)
+    plt.imsave(img_name, x_test[idx][..., 0])
+    
+    # for i, modifier in enumerate([None, 'guided', 'relu']):
+    for i, modifier in enumerate(['guided']):
+        grads = visualize_saliency(model, layer_idx, filter_indices=class_idx, 
+                                   seed_input=x_test[idx], backprop_modifier=modifier)
+        if modifier is None:
+            modifier = 'vanilla'
+
+        img_name = "tmp/SaliencyMap/hy_%s_num%d.jpg" % (modifier, class_idx)
+        plt.imsave(img_name, grads)
