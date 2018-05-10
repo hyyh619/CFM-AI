@@ -21,10 +21,12 @@ from keras.preprocessing.image import array_to_img, img_to_array
 from vis.losses import ActivationMaximization
 from vis.regularizers import TotalVariation, LPNorm
 from vis.visualization import visualize_activation
-from vis.visualization import visualize_saliency
+from vis.visualization import visualize_saliency, overlay
+from vis.visualization import visualize_cam
 from vis.utils import utils
 from keras import activations
 from matplotlib import pyplot as plt
+import matplotlib.cm as cm
 
 import TrainingDefines
 
@@ -132,6 +134,7 @@ class AIModel:
     def GetModel(self):
         return self.model
 
+
 def TraversalDir(folder, data):
     counter = 0
 
@@ -170,23 +173,20 @@ def Predict(folder, predictor, bTraversal):
     else:
         total = pd.read_csv(src)
 
-    filter_indices = [1, 2, 3]
-
     num_of_img = len(total)
 
     # Get AI model to dump silency map.
     model = predictor.GetModel()
 
     # Random check samples.
-    for i in range(20):
-        index = random.randint(0, num_of_img-1)
+    # for i in range(20):
+    #     index = random.randint(0, num_of_img-1)
+    for index in range(num_of_img):
         file = total.iloc[index]['name'].strip()
         img = cv2.imread(file)
         action = predictor.GetAction(img)
         print("%s" %(TrainingDefines.ACTION_NAME[action[0]]))
 
-        # This corresponds to the Dense linear layer.
-        ShowModelSilencyMap(model, "test_out", file, action[0])
 
 def ShowModelActivationMaximization(model, layer_name):
     # Utility to search for layer index by name. 
@@ -214,7 +214,14 @@ def ShowModelActivationMaximization(model, layer_name):
 
     return
 
-def ShowModelSilencyMap(model, layer_name, img_file, action):
+
+def ShowModelSilencyMapAndGradCAM(csv_file, predictor, layer_name):
+    total = pd.read_csv(csv_file)
+    num_of_img = len(total)
+
+    # Get AI model to dump silency map.
+    model = predictor.GetModel()
+
     # Utility to search for layer index by name. 
     # Alternatively we can specify this as -1 since it corresponds to the last layer.
     layer_idx = utils.find_layer_idx(model, layer_name)
@@ -223,25 +230,47 @@ def ShowModelSilencyMap(model, layer_name, img_file, action):
     model.layers[layer_idx].activation = activations.linear
     model = utils.apply_modifications(model)
 
-    [path, file] = os.path.split(img_file)
-    [shotname, extension] = os.path.splitext(file)
-    img = plt.imread(img_file)
-    img_name = "tmp/SaliencyMap/" + (file)
-    img_resize = cv2.resize(img, (256, 256))
-    plt.imsave(img_name, img_resize)
+    # Random check samples.
+    # for i in range(20):
+    #     index = random.randint(0, num_of_img-1)
+    for index in range(num_of_img):
+        img_file = total.iloc[index]['name'].strip()
+        img = cv2.imread(img_file)
+        action_list = predictor.GetAction(img)
+        print("%s" %(TrainingDefines.ACTION_NAME[action_list[0]]))
 
-    imgs = FixSampleToModel(img, 256, 256)
+        [path, file] = os.path.split(img_file)
+        [shotname, extension] = os.path.splitext(file)
+        img = plt.imread(img_file)
+        img_name = "tmp/SaliencyMap/" + (file)
+        img_resize = cv2.resize(img, (256, 256))
+        plt.imsave(img_name, img_resize)
 
-    # for i, modifier in enumerate([None, 'guided', 'relu']):
-    for i, modifier in enumerate(['guided']):
-        grads = visualize_saliency(model, layer_idx, filter_indices=action, 
-                                   seed_input=imgs, backprop_modifier=modifier)
-        if modifier is None:
-            modifier = 'vanilla'
+        imgs = FixSampleToModel(img, 256, 256)
+        action = action_list[0]
 
-        img_name = "tmp/SaliencyMap/%s_%s_%s.jpg" % (file, TrainingDefines.ACTION_NAME[action], modifier)
-        plt.imsave(img_name, grads)
+        # for i, modifier in enumerate([None, 'guided', 'relu']):
+        for i, modifier in enumerate(['guided']):
+            # Show Silency Map
+            grads = visualize_saliency(model, layer_idx, filter_indices=action,
+                                       seed_input=imgs, backprop_modifier=modifier)
+            if modifier is None:
+                modifier = 'vanilla'
+
+            img_name = "tmp/SaliencyMap/%s_%s_SIL_%s.jpg" % (file, TrainingDefines.ACTION_NAME[action], modifier)
+            plt.imsave(img_name, grads)
+
+            # Show Grad-CAM
+            grads = visualize_cam(model, layer_idx, filter_indices=action,
+                                  seed_input=imgs, backprop_modifier=modifier)
+
+            # Lets overlay the heatmap onto original image.
+            jet_heatmap = np.uint8(cm.jet(grads)[..., :3] * 255)
+            img_name = "tmp/SaliencyMap/%s_%s_CAM_%s.jpg" % (file, TrainingDefines.ACTION_NAME[action], modifier)
+            plt.imsave(img_name, overlay(jet_heatmap, img_resize))
+
     return
+
 
 def FixSampleToModel(inputImg, w, h):
     img = np.float32(inputImg)
@@ -253,7 +282,11 @@ def FixSampleToModel(inputImg, w, h):
     imgs = imgResize[None, :, :, :]
     return imgs
 
+
 if __name__ == '__main__':
     predictor = AIModel()
     # ShowModelActivationMaximization(predictor.GetModel(), 'test_out')
-    Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
+    # Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
+
+    # This corresponds to the Dense linear layer.
+    ShowModelSilencyMapAndGradCAM("tmp/test.csv", predictor, "test_out")
