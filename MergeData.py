@@ -453,7 +453,7 @@ def ModifyNoActionToTurn(csvFile):
                 total['action'][index] = action
                 total['action_name'][index] = action_name
             else:
-                delete_list.append(index)            
+                delete_list.append(index)
             
         elif action != 6:
             last_action = action

@@ -201,7 +201,9 @@ def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
 if __name__ == '__main__':
     fileList = ["../CFM-Dataset/40800-Action7/tfdata_orig/train0.tfrecords",
                 "../CFM-Dataset/40800-Action7/tfdata_orig/train1.tfrecords",
-                "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords"]
+                "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords",
+                "../CFM-Dataset/40800-Action7/tfdata_orig/DataAugment10.tfrecords"]
+    trainNum = 26057 + 1272
 
     Training(imgW = 320,
              imgH = 180,
@@ -211,7 +213,7 @@ if __name__ == '__main__':
              classesNum = TrainingDefines.CLASSES_NUM,
              trainingList = fileList,
              validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
-             trainingNum = 26057,
+             trainingNum = trainNum,
              validNum = 6847,
              epochs = 20)
 
