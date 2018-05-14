@@ -289,4 +289,4 @@ if __name__ == '__main__':
     # Predict("../CFM-Dataset/40800-Action7/one_hot_validate_orig", predictor, False)
 
     # This corresponds to the Dense linear layer.
-    ShowModelSilencyMapAndGradCAM("tmp/test.csv", predictor, "test_out")
+    ShowModelSilencyMapAndGradCAM("../CFM-Dataset/VerifyData/test.csv", predictor, "test_out")
