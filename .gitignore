@@ -25,3 +25,4 @@ action_define.txt
 tmp/log/*
 tmp/*
 .vscode/*
+models/mae.npy
