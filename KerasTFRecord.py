@@ -2,12 +2,20 @@
 from __future__ import print_function
 import os
 import copy
+import keras
 from keras import backend as K
 from keras.backend import tf
 from keras import callbacks as cbks
 # import numpy as np
 from keras import optimizers, objectives
-from keras.engine.training import _collect_metrics, _weighted_masked_objective
+
+if keras.__version__ == "2.2.4":
+    bNewFormat = True
+    from keras.engine.training import collect_metrics, weighted_masked_objective
+else:
+    bNewFormat = False
+    from keras.engine.training import _collect_metrics, _weighted_masked_objective
+
 from keras import metrics as metrics_module
 from keras.callbacks import TensorBoard
 import platform
@@ -147,7 +155,11 @@ def compile_tfrecord(train_model, optimizer, loss, out_tensor_lst, is_sequential
         loss_function = objectives.get(loss)
         loss_functions = [loss_function for _ in range(len(train_model.outputs))]
     train_model.loss_functions = loss_functions
-    weighted_losses = [_weighted_masked_objective(fn) for fn in loss_functions]
+
+    if bNewFormat is True:
+        weighted_losses = [weighted_masked_objective(fn) for fn in loss_functions]
+    else:
+        weighted_losses = [_weighted_masked_objective(fn) for fn in loss_functions]
 
     # prepare metrics
     train_model.metrics = metrics
@@ -179,7 +191,10 @@ def compile_tfrecord(train_model, optimizer, loss, out_tensor_lst, is_sequential
 
     # list of same size as output_names.
     # contains tuples (metrics for output, names of metrics)
-    nested_metrics = _collect_metrics(metrics, train_model.output_names)
+    if bNewFormat is True:
+        nested_metrics = collect_metrics(metrics, train_model.output_names)
+    else:
+        nested_metrics = _collect_metrics(metrics, train_model.output_names)
 
     def append_metric(layer_num, metric_name, metric_tensor):
         """Helper function, used in loop below"""
@@ -202,7 +217,11 @@ def compile_tfrecord(train_model, optimizer, loss, out_tensor_lst, is_sequential
                     output_shape = train_model.output_shape
                 else:
                     if platformType == 'Windows':
-                        output_shape = train_model._internal_output_shapes[i]
+                        # The version of keras is greater than 2.2.4.
+                        if bNewFormat is True:
+                            output_shape = train_model.output_shape
+                        else:
+                            output_shape = train_model._internal_output_shapes[i]
                     elif platformType == 'Darwin':
                         output_shape = train_model.internal_output_shapes[i]
                     else:
