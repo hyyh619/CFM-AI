@@ -39,8 +39,8 @@ def ShowTrainingResult(history):
     return
 
 def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
-             trainingList, validFolder, trainingNum, validNum, 
-             epochs = 20, optimizer='adam', lossFunc='categorical_crossentropy'):
+            trainingList, validFolder, trainingNum, validNum, 
+            epochs = 20, optimizer='adam', lossFunc='categorical_crossentropy'):
     platformType = platform.system()
 
     classes         = classesNum
@@ -199,23 +199,27 @@ def Training(imgW, imgH, inputW, inputH, modelName, classesNum,
     return
 
 if __name__ == '__main__':
-    fileList = ["../CFM-Dataset/40800-Action7/tfdata_orig/train0.tfrecords",
-                "../CFM-Dataset/40800-Action7/tfdata_orig/train1.tfrecords",
-                "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords",
-                "../CFM-Dataset/40800-Action7/tfdata_orig/DataAugment10.tfrecords"]
-    trainNum = 26057 + 1272
+    # Create models directory to store model files.
+    if not os.path.exists("./models"):
+        os.mkdir("./models")
 
-    Training(imgW = 320,
-             imgH = 180,
-             inputW = 256,
-             inputH = 256,
-             modelName = 'BehavioralClone',
-             classesNum = TrainingDefines.CLASSES_NUM,
-             trainingList = fileList,
-             validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
-             trainingNum = trainNum,
-             validNum = 6847,
-             epochs = 20)
+    # fileList = ["../CFM-Dataset/40800-Action7/tfdata_orig/train0.tfrecords",
+    #             "../CFM-Dataset/40800-Action7/tfdata_orig/train1.tfrecords",
+    #             "../CFM-Dataset/40800-Action7/tfdata_orig/train2.tfrecords",
+    #             "../CFM-Dataset/40800-Action7/tfdata_orig/DataAugment10.tfrecords"]
+    # trainNum = 26057 + 1272
+
+    # Training(imgW = 320,
+    #          imgH = 180,
+    #          inputW = 256,
+    #          inputH = 256,
+    #          modelName = 'BehavioralClone',
+    #          classesNum = TrainingDefines.CLASSES_NUM,
+    #          trainingList = fileList,
+    #          validFolder = "../CFM-Dataset/40800-Action7/one_hot_validate_orig",
+    #          trainingNum = trainNum,
+    #          validNum = 6847,
+    #          epochs = 20)
 
     # Training(imgW = 320,
     #          imgH = 180,
@@ -228,3 +232,17 @@ if __name__ == '__main__':
     #          trainingNum = 26057,
     #          validNum = 6847,
     #          epochs = 20)
+
+    fileList = ["../CFM-Dataset/4000-ActionOpt1/tfdata_orig_256x256/train0.tfrecords"]
+
+    Training(imgW = 256,
+             imgH = 256,
+             inputW = 256,
+             inputH = 256,
+             modelName = 'BehavioralClone',
+             classesNum = 6,
+             trainingList = fileList,
+             validFolder = "../CFM-Dataset/4000-ActionOpt1/one_hot_validate_orig_256x256",
+             trainingNum = 3333,
+             validNum = 833,
+             epochs = 1)
